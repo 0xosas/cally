@@ -130,7 +130,7 @@ contract Cally is CallyNft, ReentrancyGuard, Ownable, ERC721TokenReceiver {
     /// @param feeRate_ The new fee rate, ex: feeRate = 1% = 10.
     ///                 1000 is equal to 100% feeRate.
     function setFee(uint16 feeRate_) external payable onlyOwner {
-        require(feeRate_ <= 300, "Fee cannot be larger than 30%");
+        require(feeRate_ < 301, "Fee cannot be larger than 30%");
 
         feeRate = feeRate_;
 
@@ -153,10 +153,11 @@ contract Cally is CallyNft, ReentrancyGuard, Ownable, ERC721TokenReceiver {
     /// @return amount The amount of ETH that was harvested
     function selfHarvest() external payable onlyOwner returns (uint256 amount) {
         // reset premiums
-        amount = ethBalance[address(this)];
-        ethBalance[address(this)] = 0;
+        address _address_this = address(this);
+        amount = ethBalance[_address_this];
+        ethBalance[_address_this] = 0;
 
-        emit Harvested(address(this), amount);
+        emit Harvested(_address_this, amount);
 
         // transfer premiums to owner
         payable(msg.sender).safeTransferETH(amount);
@@ -233,7 +234,7 @@ contract Cally is CallyNft, ReentrancyGuard, Ownable, ERC721TokenReceiver {
         require(durationDays > 0, "durationDays too small");
         require(token.code.length > 0, "token is not contract");
         require(token != address(this), "token cannot be Cally contract");
-        require(tokenType == TokenType.ERC721 || tokenIdOrAmount > 0, "tokenIdOrAmount is 0");
+        require(tokenIdOrAmount > 0 || tokenType == TokenType.ERC721, "tokenIdOrAmount is 0");
 
         // vault index should always be odd
         unchecked {
